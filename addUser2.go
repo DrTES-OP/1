@@ -31,6 +31,7 @@ type User struct {
 type ListUser struct {
 	UserId string `json:"userId"`
 	Status string `json:"status"`
+	Title  string `json:"title"`
 }
 
 // CountUser is for storing retreived User count
@@ -226,6 +227,7 @@ func (t *ChemChaincode) listAllUser(stub shim.ChaincodeStubInterface, args []str
 		newApp := new(ListUser)
 		newApp.UserId = row.Columns[0].GetString_()
 		newApp.Status = row.Columns[1].GetString_()
+		newApp.Title = row.Columns[2].GetString_()
 		res2E = append(res2E, newApp)
 	}
 
