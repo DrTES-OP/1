@@ -210,26 +210,41 @@ func (t *ChemChaincode) getUser(stub shim.ChaincodeStubInterface, args []string)
 }
 
 func (t *ChemChaincode) listAllUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
-	if len(args) != 0 {
-		return nil, errors.New("Incorrect number of arguments. Expecting 0.")
+
+	if len(args) != 1 {
+		return nil, errors.New("Incorrect number of arguments. Expecting Userid to query")
 	}
 
+	UserId := args[0]
+
+	// Get the row pertaining to this UserId
 	var columns []shim.Column
+	col1 := shim.Column{Value: &shim.Column_String_{String_: UserId}}
+	columns = append(columns, col1)
 
-	rows, err := stub.GetRows("UserTable", columns)
+	row, err := stub.GetRow("UserTable", columns)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to retrieve row")
+		jsonResp := "{\"Error\":\"Failed to get the data for the User " + UserId + "\"}"
+		return nil, errors.New(jsonResp)
 	}
 
-	res2E := []*ListUser{}
-
-	for row := range rows {
-		newApp := new(ListUser)
-		newApp.UserId = row.Columns[0].GetString_()
-		newApp.Status = row.Columns[1].GetString_()
-		newApp.Title = row.Columns[2].GetString_()
-		res2E = append(res2E, newApp)
+	// GetRows returns empty message if key does not exist
+	if len(row.Columns) == 0 {
+		jsonResp := "{\"Error\":\"Failed to get the data for the User " + UserId + "\"}"
+		return nil, errors.New(jsonResp)
 	}
+
+	res2E := User{}
+
+	res2E.UserId = row.Columns[0].GetString_()
+	res2E.Status = row.Columns[1].GetString_()
+	res2E.Title = row.Columns[2].GetString_()
+	res2E.FirstName = row.Columns[3].GetString_()
+	res2E.LastName = row.Columns[4].GetString_()
+	res2E.Affiliation = row.Columns[5].GetString_()
+	res2E.Address = row.Columns[6].GetString_()
+	res2E.Phone = row.Columns[7].GetString_()
+	res2E.Email = row.Columns[8].GetString_()
 
 	res2F, _ := json.Marshal(res2E)
 	fmt.Println(string(res2F))
